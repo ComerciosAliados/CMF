@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Calculadora de Cuotas</title>
+  <style>
+    :root {
+      --primary: #042a5c;
+      --primary-dark: #021c3d;
+      --accent: #58b947;
+      --accent-dark: #449436;
+      --text: #162033;
+      --muted: #6e7787;
+      --bg: #f4f7fb;
+      --card: rgba(255, 255, 255, 0.88);
+      --border: rgba(4, 42, 92, 0.1);
+      --shadow: 0 20px 50px rgba(10, 36, 77, 0.14);
+      --radius: 24px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(88, 185, 71, 0.12), transparent 26%),
+        radial-gradient(circle at bottom right, rgba(4, 42, 92, 0.14), transparent 28%),
+        var(--bg);
+      min-height: 100vh;
+    }
+
+    .page {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .topbar {
+      background: linear-gradient(135deg, var(--primary) 0%, #073b82 100%);
+      color: white;
+      padding: 28px clamp(20px, 4vw, 48px);
+      box-shadow: 0 12px 30px rgba(4, 42, 92, 0.25);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .topbar-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: clamp(1.8rem, 3vw, 3rem);
+      line-height: 1;
+      letter-spacing: -0.03em;
+      font-weight: 800;
+    }
+
+    .brand p {
+      margin: 10px 0 0;
+      color: rgba(255,255,255,0.82);
+      font-size: 0.98rem;
+    }
+
+    .logo-badge {
+      padding: 12px 18px;
+      border: 1px solid rgba(255,255,255,0.15);
+      background: rgba(255,255,255,0.08);
+      border-radius: 18px;
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .main {
+      width: min(1200px, calc(100% - 32px));
+      margin: 34px auto;
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 28px;
+      align-items: stretch;
+    }
+
+    .card {
+      background: var(--card);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .calculator {
+      padding: clamp(24px, 4vw, 38px);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(88, 185, 71, 0.12);
+      color: var(--accent-dark);
+      font-weight: 700;
+      font-size: 0.9rem;
+      margin-bottom: 18px;
+    }
+
+    .calculator h2 {
+      margin: 0 0 10px;
+      font-size: clamp(1.8rem, 3vw, 2.6rem);
+      letter-spacing: -0.03em;
+    }
+
+    .calculator .subtitle {
+      margin: 0 0 28px;
+      color: var(--muted);
+      line-height: 1.6;
+      max-width: 680px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+      margin-bottom: 22px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .field label {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .input-wrap, .select-wrap {
+      position: relative;
+    }
+
+    .currency {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-weight: 800;
+      color: var(--primary);
+      font-size: 1rem;
+    }
+
+    input, select {
+      width: 100%;
+      border: 1px solid rgba(4, 42, 92, 0.15);
+      background: white;
+      border-radius: 18px;
+      padding: 18px 18px 18px 42px;
+      font-size: 1rem;
+      color: var(--text);
+      outline: none;
+      transition: 0.2s ease;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.4);
+    }
+
+    select {
+      padding-left: 16px;
+      cursor: pointer;
+    }
+
+    input:focus, select:focus {
+      border-color: rgba(88, 185, 71, 0.95);
+      box-shadow: 0 0 0 4px rgba(88, 185, 71, 0.16);
+    }
+
+    .actions {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 16px;
+      padding: 15px 22px;
+      font-size: 0.98rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent) 0%, #6bcf59 100%);
+      color: white;
+      box-shadow: 0 16px 24px rgba(88, 185, 71, 0.24);
+    }
+
+    .btn-secondary {
+      background: rgba(4, 42, 92, 0.06);
+      color: var(--primary);
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    .results {
+      margin-top: 28px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .result-card {
+      border-radius: 20px;
+      padding: 18px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(246,249,255,0.9));
+      border: 1px solid rgba(4, 42, 92, 0.08);
+    }
+
+    .result-card span {
+      display: block;
+      font-size: 0.78rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+
+    .result-card strong {
+      font-size: clamp(1.1rem, 2vw, 1.55rem);
+      color: var(--primary-dark);
+      letter-spacing: -0.02em;
+    }
+
+    .highlight {
+      background: linear-gradient(135deg, var(--primary) 0%, #0c4ca3 100%);
+      color: white;
+      border: none;
+    }
+
+    .highlight span,
+    .highlight strong,
+    .highlight small {
+      color: white;
+    }
+
+    .highlight strong {
+      font-size: clamp(1.5rem, 3vw, 2.2rem);
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .highlight small {
+      display: block;
+      color: rgba(255,255,255,0.82);
+      line-height: 1.5;
+      font-size: 0.9rem;
+    }
+
+    .preview {
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      justify-content: space-between;
+      overflow: hidden;
+    }
+
+    .preview-header h3 {
+      margin: 0;
+      font-size: 1.35rem;
+      color: var(--primary-dark);
+    }
+
+    .preview-header p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .preview-image-wrap {
+      position: relative;
+      border-radius: 22px;
+      overflow: hidden;
+      min-height: 380px;
+      border: 1px solid rgba(4, 42, 92, 0.08);
+      background: linear-gradient(160deg, rgba(4,42,92,0.05), rgba(88,185,71,0.08));
+    }
+
+    .preview-image-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .preview-badge {
+      position: absolute;
+      left: 18px;
+      right: 18px;
+      bottom: 18px;
+      background: rgba(255,255,255,0.88);
+      backdrop-filter: blur(8px);
+      border-radius: 18px;
+      padding: 14px 16px;
+      border: 1px solid rgba(4, 42, 92, 0.08);
+      box-shadow: 0 12px 30px rgba(7, 34, 77, 0.14);
+    }
+
+    .preview-badge strong {
+      display: block;
+      font-size: 1rem;
+      color: var(--primary-dark);
+      margin-bottom: 6px;
+    }
+
+    .preview-badge p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.5;
+    }
+
+    .footer-note {
+      width: min(1200px, calc(100% - 32px));
+      margin: 0 auto 30px;
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.6;
+      text-align: center;
+    }
+
+    @media (max-width: 980px) {
+      .main {
+        grid-template-columns: 1fr;
+      }
+
+      .results {
+        grid-template-columns: 1fr;
+      }
+
+      .preview-image-wrap {
+        min-height: 280px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .topbar-content {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .calculator,
+      .preview {
+        padding: 20px;
+      }
+
+      input, select {
+        font-size: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="topbar">
+      <div class="topbar-content">
+        <div class="brand">
+          <h1>Calculadora de Cuotas</h1>
+          <p>Simula el valor estimado de tu cuota mensual de forma rápida y clara.</p>
+        </div>
+        <div class="logo-badge">CMF</div>
+      </div>
+    </header>
+
+    <main class="main">
+      <section class="card calculator">
+        <div class="eyebrow">Tasa fija mensual: 3.99%</div>
+        <h2>Calcula tu cuota en segundos</h2>
+        <p class="subtitle">
+          Ingresa el monto total, selecciona el plazo y obtén el valor estimado de la cuota mensual
+          usando una tasa de interés fija del 3.99% mensual.
+        </p>
+
+        <div class="form-grid">
+          <div class="field">
+            <label for="monto">Monto total</label>
+            <div class="input-wrap">
+              <span class="currency">$</span>
+              <input id="monto" type="number" min="1" step="0.01" placeholder="Ejemplo: 1500" />
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="plazo">Plazo</label>
+            <div class="select-wrap">
+              <select id="plazo">
+                <option value="6">6 meses</option>
+                <option value="12" selected>12 meses</option>
+                <option value="18">18 meses</option>
+                <option value="24">24 meses</option>
+                <option value="36">36 meses</option>
+                <option value="48">48 meses</option>
+                <option value="60">60 meses</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="btn-primary" id="calcularBtn">Calcular cuota</button>
+          <button class="btn-secondary" id="limpiarBtn" type="button">Limpiar</button>
+        </div>
+
+        <div class="results">
+          <div class="result-card highlight">
+            <span>Cuota mensual</span>
+            <strong id="cuota">$0.00</strong>
+            <small>Resultado estimado según el monto ingresado y el plazo seleccionado.</small>
+          </div>
+
+          <div class="result-card">
+            <span>Total a pagar</span>
+            <strong id="totalPagar">$0.00</strong>
+          </div>
+
+          <div class="result-card">
+            <span>Interés total</span>
+            <strong id="interesTotal">$0.00</strong>
+          </div>
+        </div>
+      </section>
+
+      <aside class="card preview">
+        <div class="preview-header">
+          <h3>Vista de referencia</h3>
+          <p>
+            Esta sección utiliza la imagen colocada en la misma carpeta del proyecto como apoyo visual
+            para mantener una línea similar al diseño que compartiste.
+          </p>
+        </div>
+
+        <div class="preview-image-wrap">
+          <img src="./02963c4b-ded3-4810-8d8b-43cbe1660861.png" alt="Referencia visual del layout" />
+          <div class="preview-badge">
+            <strong>Diseño renovado</strong>
+            <p>
+              Se tomó tu layout como base, pero con una interfaz más moderna, limpia y atractiva para GitHub Pages.
+            </p>
+          </div>
+        </div>
+      </aside>
+    </main>
+
+    <p class="footer-note">
+      Nota: este cálculo es informativo y usa una tasa fija mensual de 3.99%. Puedes publicar este archivo directamente en GitHub Pages.
+    </p>
+  </div>
+
+  <script>
+    const tasaMensual = 0.0399;
+
+    const montoInput = document.getElementById('monto');
+    const plazoSelect = document.getElementById('plazo');
+    const cuotaEl = document.getElementById('cuota');
+    const totalPagarEl = document.getElementById('totalPagar');
+    const interesTotalEl = document.getElementById('interesTotal');
+    const calcularBtn = document.getElementById('calcularBtn');
+    const limpiarBtn = document.getElementById('limpiarBtn');
+
+    function formatCurrency(value) {
+      return new Intl.NumberFormat('es-PA', {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }).format(value);
+    }
+
+    function calcularCuota() {
+      const monto = parseFloat(montoInput.value);
+      const plazo = parseInt(plazoSelect.value, 10);
+
+      if (!monto || monto <= 0) {
+        cuotaEl.textContent = '$0.00';
+        totalPagarEl.textContent = '$0.00';
+        interesTotalEl.textContent = '$0.00';
+        return;
+      }
+
+      const factor = Math.pow(1 + tasaMensual, plazo);
+      const cuota = (monto * tasaMensual * factor) / (factor - 1);
+      const totalPagar = cuota * plazo;
+      const interesTotal = totalPagar - monto;
+
+      cuotaEl.textContent = formatCurrency(cuota);
+      totalPagarEl.textContent = formatCurrency(totalPagar);
+      interesTotalEl.textContent = formatCurrency(interesTotal);
+    }
+
+    function limpiarFormulario() {
+      montoInput.value = '';
+      plazoSelect.value = '12';
+      cuotaEl.textContent = '$0.00';
+      totalPagarEl.textContent = '$0.00';
+      interesTotalEl.textContent = '$0.00';
+    }
+
+    calcularBtn.addEventListener('click', calcularCuota);
+    limpiarBtn.addEventListener('click', limpiarFormulario);
+    montoInput.addEventListener('input', calcularCuota);
+    plazoSelect.addEventListener('change', calcularCuota);
+  </script>
+</body>
+</html>
